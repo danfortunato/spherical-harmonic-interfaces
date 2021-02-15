@@ -1,0 +1,118 @@
+$ #include <stdio.h>
+$ #include <stdlib.h>
+$ #include <complex.h>
+$ #include <math.h>
+$ #include <fftw3.h>
+$ #include <shtns.h>
+$ #include <mex.h>
+
+$ typedef struct shtns_info shtns_info_t;
+
+$ shtns_info_t* ishtns_init(long lmax, long mmax, long nlat, long nlon) {
+$     enum shtns_type shtmode = sht_quick_init; //sht_reg_fast
+$     enum shtns_norm shtnorm = SHT_REAL_NORM;
+$     int layout = SHT_THETA_CONTIGUOUS | SHT_SCALAR_ONLY | SHT_ALLOW_GPU; //SHT_THETA_CONTIGUOUS
+$     long mres = 1;
+$     double polaropt = 0;
+$     shtns_info_t* plan = shtns_create(lmax, mmax, mres, shtnorm);
+$     shtns_set_grid(plan, shtmode | layout, polaropt, nlat, nlon);
+$     return plan;
+$ }
+
+$ long get_nlm(shtns_info_t* plan) {
+$     return plan->nlm;
+$ }
+
+$ long get_nspat(shtns_info_t* plan) {
+$     return plan->nspat;
+$ }
+
+@ backend.m ---------------------------------------------------------------
+classdef backend < sht_backend
+
+    properties
+        mwptr % A special property that MWrap uses as an opaque pointer to a C object
+        nspat
+        nlm
+    end
+
+    methods
+
+        function backend = backend(plan)
+
+            backend = backend@sht_backend(plan);
+
+            lmax = backend.lmax;
+            mmax = backend.mmax;
+            nlat = backend.nlat;
+            nlon = backend.nlon;
+
+            if ( mod(nlat, 2) ~= 0 )
+                error('nlat must be even.')
+            end
+
+            % Create a pointer to the C plan
+            # shtns_info_t* mwptr = ishtns_init(long lmax, long mmax, long nlat, long nlon);
+            backend.mwptr = mwptr;
+
+            % Store some quantities locally, for easier access
+            # long nlm = get_nlm(shtns_info_t* backend);
+            # long nspat = get_nspat(shtns_info_t* backend);
+            backend.nlm = nlm;
+            backend.nspat = nspat;
+
+        end
+
+        function delete(backend)
+            if ~isempty(backend.mwptr)
+                % Delete the C object
+                # shtns_destroy(shtns_info_t* backend);
+                backend.mwptr = '';
+            end
+        end
+
+        function V = coeffs2vals(backend, C)
+            nlm = backend.nlm;
+            nspat = backend.nspat;
+            # SH_to_spat(shtns_info_t* backend, dcomplex[nlm] C, output double[nspat] V);
+            V = reshape(V, [backend.nlat backend.nlon]);
+        end
+
+        function C = vals2coeffs(backend, V)
+            nlm = backend.nlm;
+            nspat = backend.nspat;
+            # spat_to_SH(shtns_info_t* backend, double[nspat] V, output dcomplex[nlm] C);
+        end
+
+        function C = toCanonicalCoeffs(backend, C)
+            lmax = backend.lmax;
+            mmax = backend.mmax;
+            mask = tril(true(lmax+1,mmax+1));
+            A = zeros(lmax+1);
+            A(mask) = real(C);
+            B = zeros(lmax+1);
+            B(mask) = -imag(C);
+            C = [fliplr(B(:,2:end)) A];
+            C = util.fromPyramid(C);
+        end
+
+        function C = fromCanonicalCoeffs(backend, C)
+            lmax = backend.lmax;
+            mmax = backend.mmax;
+            A = util.toPyramid(C);
+            C = [zeros(lmax+1,mmax), A(:,mmax+1), A(:,mmax+2:end) - 1i*A(:,mmax:-1:1)];
+            mask = [false(lmax+1,mmax) tril(true(lmax+1,mmax+1))];
+            C = C(mask);
+        end
+
+        function V = toCanonicalVals(backend, V)
+            V = flipud(V);
+        end
+
+        function V = fromCanonicalVals(backend, V)
+            V = flipud(V);
+        end
+
+    end
+
+end
