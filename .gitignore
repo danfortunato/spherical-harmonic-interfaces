@@ -1,0 +1,75 @@
+# Mac OS files
+.DS_Store?
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Matlab autosaves
+*.~
+*.asv
+
+# Matlab MEX
+*.mex*
+
+# Compiled Object files
+*.o
+*.ko
+*.obj
+*.slo
+*.lo
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled headers
+*.gch
+*.pch
+
+# Compiled dynamic libraries
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Compiled static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# LaTeX intermediate files
+*.aux
+*.bbl
+*.out
+*.blg
+*.log
+*.thm
+*.spl
+*.fdb_latexmk
+*.fls
+*.dvi
+*.nav
+*.snm
+*.vrb
+*.brf
+*.toc
+*.synctex
+*.synctex.gz
+*-converted-to.*
