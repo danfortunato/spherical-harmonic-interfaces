@@ -9,9 +9,9 @@ $ #include <mex.h>
 $ typedef struct shtns_info shtns_info_t;
 
 $ shtns_info_t* ishtns_init(long lmax, long mmax, long nlat, long nlon) {
-$     enum shtns_type shtmode = sht_quick_init; //sht_reg_fast
+$     enum shtns_type shtmode = sht_quick_init; // sht_reg_fast
 $     enum shtns_norm shtnorm = SHT_REAL_NORM;
-$     int layout = SHT_THETA_CONTIGUOUS | SHT_SCALAR_ONLY | SHT_ALLOW_GPU; //SHT_THETA_CONTIGUOUS
+$     int layout = SHT_THETA_CONTIGUOUS | SHT_ALLOW_GPU;
 $     long mres = 1;
 $     double polaropt = 0;
 $     shtns_info_t* plan = shtns_create(lmax, mmax, mres, shtnorm);
@@ -82,6 +82,14 @@ classdef backend < sht_backend
             nlm = backend.nlm;
             nspat = backend.nspat;
             # spat_to_SH(shtns_info_t* backend, double[nspat] V, output dcomplex[nlm] C);
+        end
+
+        function [dlambda, dtheta] = coeffs2gradvals(backend, C)
+            nlm = backend.nlm;
+            nspat = backend.nspat;
+            # SH_to_grad_spat(shtns_info_t* backend, dcomplex[nlm] C, output double[nspat] dtheta, output double[nspat] dlambda);
+            dlambda = reshape(dlambda, [backend.nlat backend.nlon]);
+            dtheta  = reshape(dtheta,  [backend.nlat backend.nlon]);
         end
 
         function C = toCanonicalCoeffs(backend, C)

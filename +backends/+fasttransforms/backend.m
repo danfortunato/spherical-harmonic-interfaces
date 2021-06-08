@@ -115,6 +115,10 @@ backends.fasttransforms.mex(mex_id_, backend);
 
         end
 
+        function [dlambda, dtheta] = coeffs2gradvals(backend, C)
+            error('Not implemented.');
+        end
+
         function C = toCanonicalCoeffs(backend, C)
             mmax = backend.mmax;
             A = 0*C;

@@ -60,6 +60,15 @@ backends.shtns.mex(mex_id_, backend);
 [C] = backends.shtns.mex(mex_id_, backend, V, nspat, nlm);
         end
 
+        function [dlambda, dtheta] = coeffs2gradvals(backend, C)
+            nlm = backend.nlm;
+            nspat = backend.nspat;
+            mex_id_ = 'SH_to_grad_spat(i shtns_info_t*, i dcomplex[x], o double[x], o double[x])';
+[dtheta, dlambda] = backends.shtns.mex(mex_id_, backend, C, nlm, nspat, nspat);
+            dlambda = reshape(dlambda, [backend.nlat backend.nlon]);
+            dtheta  = reshape(dtheta,  [backend.nlat backend.nlon]);
+        end
+
         function C = toCanonicalCoeffs(backend, C)
             lmax = backend.lmax;
             mmax = backend.mmax;

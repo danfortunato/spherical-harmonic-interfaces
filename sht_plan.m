@@ -73,6 +73,7 @@ classdef sht_plan < handle
                 case 'shtns'
                     plan.backend = backends.shtns.backend(plan);
                     plan.grid.lat = acos(util.legpts(plan.nlat));
+                    %plan.grid.lat = util.trigpts(plan.nlat, [0 2*pi]);
                     plan.grid.lon = util.trigpts(plan.nlon, [0 2*pi]);
                 case 'fmm3d'
                     plan.backend = backends.fmm3d.backend(plan);
@@ -98,6 +99,13 @@ classdef sht_plan < handle
             V = plan.backend.fromCanonicalVals(V);
             C = plan.backend.vals2coeffs(V);
             C = plan.backend.toCanonicalCoeffs(C);
+        end
+
+        function [dlambda, dtheta] = coeffs2gradvals(plan, C)
+            C = plan.backend.fromCanonicalCoeffs(C);
+            [dlambda, dtheta] = plan.backend.coeffs2gradvals(C);
+            dlambda = plan.backend.toCanonicalVals(dlambda);
+            dtheta  = plan.backend.toCanonicalVals(dtheta);
         end
 
         function C = toCanonicalCoeffs(plan, C)

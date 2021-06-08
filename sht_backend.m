@@ -26,6 +26,7 @@ classdef (Abstract) sht_backend
 
         V = coeffs2vals(backend, C);
         C = vals2coeffs(backend, V);
+        [dlambda, dtheta] = coeffs2gradvals(backend, C);
 
         C = toCanonicalCoeffs(backend, C);
         C = fromCanonicalCoeffs(backend, C);

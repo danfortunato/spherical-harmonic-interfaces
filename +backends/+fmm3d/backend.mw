@@ -44,6 +44,10 @@ classdef backend < sht_backend
             # FORTRAN projloc3d(int P, int P, int nlat, int nlon, double[nlat] z, double[nlat] w, dcomplex[nlon,nlat] V, output dcomplex[P1,P2] C);
         end
 
+        function [dlambda, dtheta] = coeffs2gradvals(backend, C)
+            error('Not implemented.');
+        end
+
         function C = toCanonicalCoeffs(backend, C)
             mmax = backend.mmax;
             C = [imag(C(:,1:mmax))*2*sqrt(2*pi) real(C(:,mmax+1))*sqrt(4*pi) real(C(:,mmax+2:end))*2*sqrt(2*pi)];

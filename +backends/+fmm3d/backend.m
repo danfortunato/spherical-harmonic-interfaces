@@ -45,6 +45,10 @@ classdef backend < sht_backend
 [C] = backends.fmm3d.mex(mex_id_, P, P, nlat, nlon, z, w, V, nlat, nlat, nlon, nlat, P1, P2);
         end
 
+        function [dlambda, dtheta] = coeffs2gradvals(backend, C)
+            error('Not implemented.');
+        end
+
         function C = toCanonicalCoeffs(backend, C)
             mmax = backend.mmax;
             C = [imag(C(:,1:mmax))*2*sqrt(2*pi) real(C(:,mmax+1))*sqrt(4*pi) real(C(:,mmax+2:end))*2*sqrt(2*pi)];

@@ -980,9 +980,9 @@ typedef _Complex float fcomplex;
  #include <mex.h>
  typedef struct shtns_info shtns_info_t;
  shtns_info_t* ishtns_init(long lmax, long mmax, long nlat, long nlon) {
-     enum shtns_type shtmode = sht_quick_init; //sht_reg_fast
+     enum shtns_type shtmode = sht_quick_init; // sht_reg_fast
      enum shtns_norm shtnorm = SHT_REAL_NORM;
-     int layout = SHT_THETA_CONTIGUOUS | SHT_SCALAR_ONLY | SHT_ALLOW_GPU; //SHT_THETA_CONTIGUOUS
+     int layout = SHT_THETA_CONTIGUOUS | SHT_ALLOW_GPU;
      long mres = 1;
      double polaropt = 0;
      shtns_info_t* plan = shtns_create(lmax, mmax, mres, shtnorm);
@@ -1317,6 +1317,61 @@ mw_err_label:
         mexErrMsgTxt(mw_err_txt_);
 }
 
+/* ---- backend.mw: 90 ----
+ * SH_to_grad_spat(shtns_info_t* backend, dcomplex[nlm] C, output double[nspat] dtheta, output double[nspat] dlambda);
+ */
+static const char* stubids7_ = "SH_to_grad_spat(i shtns_info_t*, i dcomplex[x], o double[x], o double[x])";
+
+void mexStub7(int nlhs, mxArray* plhs[],
+              int nrhs, const mxArray* prhs[])
+{
+    const char* mw_err_txt_ = 0;
+    shtns_info_t*  in0_ =0; /* backend    */
+    dcomplex*   in1_ =0; /* C          */
+    double*     out0_=0; /* dtheta     */
+    double*     out1_=0; /* dlambda    */
+    mwSize      dim2_;   /* nlm        */
+    mwSize      dim3_;   /* nspat      */
+    mwSize      dim4_;   /* nspat      */
+
+    dim2_ = (mwSize) mxWrapGetScalar(prhs[2], &mw_err_txt_);
+    dim3_ = (mwSize) mxWrapGetScalar(prhs[3], &mw_err_txt_);
+    dim4_ = (mwSize) mxWrapGetScalar(prhs[4], &mw_err_txt_);
+
+    if (mxGetM(prhs[1])*mxGetN(prhs[1]) != dim2_) {
+        mw_err_txt_ = "Bad argument size: C";        goto mw_err_label;
+    }
+
+    in0_ = (shtns_info_t*) mxWrapGetP(prhs[0], "shtns_info_t:%p", &mw_err_txt_);
+    if (mw_err_txt_)
+        goto mw_err_label;
+    if (mxGetM(prhs[1])*mxGetN(prhs[1]) != 0) {
+        if( mxGetClassID(prhs[1]) != mxDOUBLE_CLASS )
+            mw_err_txt_ = "Invalid array argument, mxDOUBLE_CLASS expected";
+        if (mw_err_txt_) goto mw_err_label;
+        in1_ = mxWrapGetArray_dcomplex(prhs[1], &mw_err_txt_);
+        if (mw_err_txt_)
+            goto mw_err_label;
+    } else
+        in1_ = NULL;
+    out0_ = (double*) mxMalloc(dim3_*sizeof(double));
+    out1_ = (double*) mxMalloc(dim4_*sizeof(double));
+    if (mexprofrecord_)
+        mexprofrecord_[7]++;
+    SH_to_grad_spat(in0_, in1_, out0_, out1_);
+    plhs[0] = mxCreateDoubleMatrix(dim3_, 1, mxREAL);
+    mxWrapCopy_double(plhs[0], out0_, dim3_);
+    plhs[1] = mxCreateDoubleMatrix(dim4_, 1, mxREAL);
+    mxWrapCopy_double(plhs[1], out1_, dim4_);
+
+mw_err_label:
+    if (in1_)  mxFree(in1_);
+    if (out0_) mxFree(out0_);
+    if (out1_) mxFree(out1_);
+    if (mw_err_txt_)
+        mexErrMsgTxt(mw_err_txt_);
+}
+
 /* ----
  */
 void mexFunction(int nlhs, mxArray* plhs[],
@@ -1342,12 +1397,14 @@ void mexFunction(int nlhs, mxArray* plhs[],
         mexStub5(nlhs,plhs, nrhs-1,prhs+1);
     else if (strcmp(id, stubids6_) == 0)
         mexStub6(nlhs,plhs, nrhs-1,prhs+1);
+    else if (strcmp(id, stubids7_) == 0)
+        mexStub7(nlhs,plhs, nrhs-1,prhs+1);
     else if (strcmp(id, "*profile on*") == 0) {
         if (!mexprofrecord_) {
-            mexprofrecord_ = (int*) malloc(7 * sizeof(int));
+            mexprofrecord_ = (int*) malloc(8 * sizeof(int));
             mexLock();
         }
-        memset(mexprofrecord_, 0, 7 * sizeof(int));
+        memset(mexprofrecord_, 0, 8 * sizeof(int));
     } else if (strcmp(id, "*profile off*") == 0) {
         if (mexprofrecord_) {
             free(mexprofrecord_);
@@ -1363,6 +1420,7 @@ void mexFunction(int nlhs, mxArray* plhs[],
         mexPrintf("%d calls to backend.mw:69\n", mexprofrecord_[4]);
         mexPrintf("%d calls to backend.mw:77\n", mexprofrecord_[5]);
         mexPrintf("%d calls to backend.mw:84\n", mexprofrecord_[6]);
+        mexPrintf("%d calls to backend.mw:90\n", mexprofrecord_[7]);
     } else if (strcmp(id, "*profile log*") == 0) {
         FILE* logfp;
         if (nrhs != 2 || mxGetString(prhs[1], id, sizeof(id)) != 0)
@@ -1378,6 +1436,7 @@ void mexFunction(int nlhs, mxArray* plhs[],
         fprintf(logfp, "%d calls to backend.mw:69\n", mexprofrecord_[4]);
         fprintf(logfp, "%d calls to backend.mw:77\n", mexprofrecord_[5]);
         fprintf(logfp, "%d calls to backend.mw:84\n", mexprofrecord_[6]);
+        fprintf(logfp, "%d calls to backend.mw:90\n", mexprofrecord_[7]);
         fclose(logfp);
     } else
         mexErrMsgTxt("Unknown identifier");
